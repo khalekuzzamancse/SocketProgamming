@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/NetworkProgramming.iml" filepath="$PROJECT_DIR$/NetworkProgramming.iml" />
+      <module fileurl="file://$PROJECT_DIR$/socket_programming.iml" filepath="$PROJECT_DIR$/socket_programming.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/console_app_kotlin/socket_programming.console_app_kotlin.iml" filepath="$PROJECT_DIR$/.idea/modules/console_app_kotlin/socket_programming.console_app_kotlin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/console_app_kotlin/socket_programming.console_app_kotlin.main.iml" filepath="$PROJECT_DIR$/.idea/modules/console_app_kotlin/socket_programming.console_app_kotlin.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/console_app_kotlin/socket_programming.console_app_kotlin.test.iml" filepath="$PROJECT_DIR$/.idea/modules/console_app_kotlin/socket_programming.console_app_kotlin.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/socket_programming.main.iml" filepath="$PROJECT_DIR$/.idea/modules/socket_programming.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/socket_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/socket_programming.test.iml" />
+    </modules>
+  </component>
+</project>

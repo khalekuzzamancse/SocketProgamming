@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="socket_programming" target="1.8" />
+      <module name="socket_programming.console_app_kotlin" target="1.8" />
+      <module name="socket_programming.console_app_kotlin.main" target="1.8" />
+      <module name="socket_programming.console_app_kotlin.test" target="1.8" />
+      <module name="socket_programming.main" target="1.8" />
+      <module name="socket_programming.test" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
