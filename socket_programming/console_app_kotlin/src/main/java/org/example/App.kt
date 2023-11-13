@@ -16,6 +16,7 @@ fun main() {
                     myClient.connect()
                     delay(5_000)
                     val isNotSent =!myClient.send("Hi".toByteArray())
+                 myClient.send("Hello".toByteArray())
                     if (isNotSent)
                         myClient.connect()
                 }

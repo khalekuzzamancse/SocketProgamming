@@ -59,14 +59,6 @@ class ClientCommunicationHandler(
 
     suspend fun send(socket: Socket, data: ByteArray): Boolean {
         if (socket.isConnected) {
-//            try {
-//                withContext(Dispatchers.IO) {
-//                    socket.getOutputStream().write(data)
-//                    socket.getOutputStream().flush()
-//                }
-//                return true
-//            } catch (_: IOException) {
-//            }
             val sender = DataSender(DataType.TextMessage, socket)
             sender.sendHeader()
             data.forEach {
