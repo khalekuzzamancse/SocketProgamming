@@ -4,11 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.DataOutputStream
 import java.io.IOException
-import java.io.OutputStream
 import java.net.Socket
-import java.nio.charset.StandardCharsets
-import java.util.zip.DeflaterOutputStream
-
 
 
 interface Peer {
@@ -20,60 +16,58 @@ interface Peer {
     fun observeReceiveData()
 }
 
-enum class DataType {
-    TextMessage, Image
-}
-
-
-
 
 class DataSender(
-    private val dataType: DataType,
-    private val socket: Socket
+    private val type: FileExtension,
+    private val socket: Socket,
+    private val sender: Sender = Sender(type)
 ) {
-    private val fileExtension = when (dataType) {
-        DataType.Image -> "img"
-        DataType.TextMessage -> "msg"
-    }
-    private val header = padStringTo20Bytes(fileExtension)
-    private val footer = padStringTo20Bytes("@END")
 
-    suspend fun sendHeader() {
-        send(header.toByteArray())
+    companion object {
+        const val TAG = "DataSender::"
     }
 
-    suspend fun sendData(oneByte: Byte) {
-        send(byteArrayOf(oneByte))
+    suspend fun sendHeader(): Boolean {
+//        val success = send(sender.encodedFileType())
+        val success = send(ByteArray(20))
+        if (!success) {
+            print("$TAG sendHeader() failed")
+        }
+        return success
     }
 
-    suspend fun sendFooter() {
-        send(footer.toByteArray())
+    suspend fun sendData(oneByte: Byte): Boolean {
+        val success = send(byteArrayOf(oneByte))
+        if (!success) {
+            print("$TAG sendData() failed")
+        }
+        return success
     }
 
-    private suspend fun send(data: ByteArray) {
+    suspend fun sendEndFlag(): Boolean {
+//        val success = send(sender.encodeEndFlag())
+        val success = send(ByteArray(15))
+        if (!success) {
+            print("$TAG sendEndFlag() failed")
+        }
+        return success
+    }
+
+    private suspend fun send(data: ByteArray): Boolean = withContext(Dispatchers.IO) {
+        var res = true
         try {
-            withContext(Dispatchers.IO) {
-                val outputStream = DataOutputStream(socket.getOutputStream())
-                outputStream.write(data)
-                outputStream.flush()
-            }
+            val outputStream = DataOutputStream(socket.getOutputStream())
+            outputStream.write(data)
+            outputStream.flush()
+            outputStream.close()
+
         } catch (e: IOException) {
-            // Handle the exception
+            res = false
+            print("$TAG send() causes IOException")
         }
+        res
     }
 
-    private fun padStringTo20Bytes(input: String): String {
-        val utf8Bytes = input.toByteArray()
-        val spacesToAdd = 10 - utf8Bytes.size
-        return if (spacesToAdd >= 0) {
-            val padding = " ".repeat(spacesToAdd)
-            input + padding
-        } else {
-            String(utf8Bytes.copyOf(10))
-        }
-    }
+
 }
 
-fun main() {
-    DataSender(DataType.Image, Socket())
-}

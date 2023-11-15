@@ -2,32 +2,39 @@ package org.example
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import java.util.*
+import org.example.client.Client
+import org.example.server.Server
 
 fun main() {
     runBlocking {
-        print("Please enter 's' or 'c':")
-        val userInput = readlnOrNull()
-        if (userInput != null) {
-            when (userInput.trim().lowercase(Locale.getDefault())) {
-                "s" -> Server().start()
-                "c" -> {
-                    val myClient = Client("localhost")
-                    myClient.connect()
-                    delay(5_000)
-                    val isNotSent =!myClient.send("Hi".toByteArray())
-                 myClient.send("Hello".toByteArray())
-                    if (isNotSent)
-                        myClient.connect()
-                }
+        if (joinedAsServer()) {
+            val server = Server()
+            server.start()
+        } else {
+            val client = Client(
+                serverIP = "localhost",
+                serverPort = Peer.SERVER_PORT
+            )
+            client.connect()
+            val text = "are you there?"
+            client.send(TextEncoderDecoder().encode(text))
+          //  client.send(TextEncoderDecoder().encode(text))
+           // client.send("When you come back!!".toByteArray())
+            while (true) {
 
-                else -> println("Please enter 's' or 'c'.")
             }
-
-        }
-        while (true){
-
         }
     }
 
 }
+
+fun joinedAsServer(): Boolean {
+    var userInput: Char
+    do {
+        print("Enter 'c' for client or 's' for server: ")
+        userInput = readlnOrNull()?.trim()?.lowercase()?.firstOrNull() ?: ' '
+    } while (userInput != 'c' && userInput != 's')
+    return userInput == 's'
+}
+
+
