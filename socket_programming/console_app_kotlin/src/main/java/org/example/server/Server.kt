@@ -1,11 +1,7 @@
 package org.example.server
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.example.Peer
-import org.example.ReceivedDataDecoder
-import org.example.ReceiverProtocol
-import org.example.client.ClientCommunicationHandler
+import org.example.TextEncoderDecoder
 import java.io.IOException
 import java.io.InputStream
 import java.net.ServerSocket
@@ -13,7 +9,7 @@ import java.net.Socket
 
 
 class Server(
-    private val port: Int = Peer.SERVER_PORT
+    port: Int = Peer.SERVER_PORT
 ) : Peer {
     private val serverSocket = ServerSocket(port)
     private val connectedClients = mutableListOf<ClientHandler>()
@@ -24,13 +20,12 @@ class Server(
     }
 
     fun start() {
-
+        println("Server:running")
         while (true) {
             try {
-                println("Server:running")
                 val clientSocket = serverSocket.accept()
                 socket = clientSocket
-                connectedClients.add(ClientHandler(clientSocket))
+                connectedClients.add(ClientHandler())
                 observeReceiveData()
             } catch (_: Exception) {
 
@@ -46,27 +41,30 @@ class Server(
 
 
     override fun observeReceiveData() {
-        runBlocking {
-            while (true) {
-                try {
-                    val inputStream: InputStream = socket.getInputStream()
-                    val receivedLengthInBytes = inputStream.readAllBytes()
-                    println("${receivedLengthInBytes.toList()} ")
-                } catch (e: IOException) {
-                    println("$TAG observeReceiveData() causes exception")
+        val closeSignal = -1
+        var shouldRead=true
+        val dataBytes= mutableListOf<Byte>()
+        try {
+            val inputStream: InputStream = socket.getInputStream()
+            while (shouldRead) {
+                val bytes = inputStream.read()
+                if(bytes!=closeSignal)
+                    dataBytes.add(bytes.toByte())
+                if (bytes == closeSignal){
+                    inputStream.close()
+                    shouldRead=false
                 }
-                delay(1000)
+
             }
+            println("${TextEncoderDecoder().decode(dataBytes.toByteArray())} ")
 
+        } catch (e: IOException) {
+            println("$TAG observeReceiveData() causes exception")
         }
-
-
     }
 
 
 }
 
 
-class ClientHandler(clientSocket: Socket) {
-
-}
+class ClientHandler

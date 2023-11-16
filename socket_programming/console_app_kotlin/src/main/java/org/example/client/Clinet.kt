@@ -3,10 +3,7 @@ package org.example.client
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import org.example.DataSender
-import org.example.FileExtensions
 import org.example.Peer
-import java.io.DataOutputStream
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -18,29 +15,60 @@ class Client(
     private var serverSocket: Socket? = null
     private val handler = ClientCommunicationHandler(serverIP, serverPort)
 
-    suspend fun connect() {
+    private suspend fun connect() {
         serverSocket = handler.connect()
     }
 
+
     override suspend fun send(data: ByteArray): Boolean {
+        if (isNotConnected()) {
+            connect()
+        }
+        sendBytes(data.toList())
+        closeConnection()
+        reconnect()
+        return true
+    }
+
+    private fun isNotConnected(): Boolean {
+        serverSocket ?: return true
+        return false
+    }
+
+    private suspend fun sendBytes(data: List<Byte>) {
         val socket = serverSocket
         if (socket == null) {
             println("Client:: send:Failed due to: socket is null")
-            return false
+            return
         }
-        return try {
+        try {
             withContext(Dispatchers.IO) {
-                val outputStream = DataOutputStream(socket.getOutputStream())
-                outputStream.write(data)
-                outputStream.close()
+                val outputStream = socket.getOutputStream()
+                //sending 1 byte at a time for desecration purpose though sending 1 byte poor performance
+                //this concept is useful when sending large data then we can send
+                //small chunks
+                data.forEach { oneByte ->
+                    outputStream.write(byteArrayOf(oneByte))
+                }
+
             }
-            true
-        } catch (e: IOException) {
-            print("${DataSender.TAG} send() causes IOException")
-            false
+
+        } catch (_: IOException) {
 
         }
+    }
 
+    private suspend fun closeConnection() {
+        serverSocket?.let { socket ->
+            withContext(Dispatchers.IO) {
+                socket.getOutputStream().close()
+            }
+        }
+        serverSocket = null
+    }
+
+    private suspend fun reconnect() {
+        connect()
     }
 
     override fun observeReceiveData() {
@@ -81,26 +109,6 @@ class ClientCommunicationHandler(
             }
         }
 
-    }
-
-    suspend fun send(socket: Socket, data: ByteArray): Boolean = withContext(Dispatchers.IO) {
-
-        var res = true
-        val sender = DataSender(
-            type = FileExtensions.Text,
-            socket = socket
-        )
-        sender.sendHeader()
-//        data.forEachIndexed { index, singleByteData ->
-//            val isNotSuccess =!sender.sendData(singleByteData)
-//            res=isNotSuccess
-//            if (isNotSuccess) {
-//                println("$TAG send()->Failed at ${index}Th byte data")
-//            }
-//        }
-//        sender.sendEndFlag()
-//        println("$TAG send()->Sent: ${data.map { it }}")
-        res
     }
 
 }

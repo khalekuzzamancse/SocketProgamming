@@ -1,6 +1,5 @@
 package org.example
 
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.example.client.Client
 import org.example.server.Server
@@ -15,11 +14,11 @@ fun main() {
                 serverIP = "localhost",
                 serverPort = Peer.SERVER_PORT
             )
-            client.connect()
+
             val text = "are you there?"
             client.send(TextEncoderDecoder().encode(text))
-          //  client.send(TextEncoderDecoder().encode(text))
-           // client.send("When you come back!!".toByteArray())
+            client.send(TextEncoderDecoder().encode("Hello there !"))
+            client.send(TextEncoderDecoder().encode("hello ভাই"))
             while (true) {
 
             }

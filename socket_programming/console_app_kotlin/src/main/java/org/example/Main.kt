@@ -1,12 +1,13 @@
 package org.example
 
 fun main() {
-    val send = "are you there ?"
-    val bytes = TextEncoderDecoder().encode(send)
-    println(bytes.toList())
-    val rec = TextEncoderDecoder().decode(bytes)
-    println(rec)
-    println(TextEncoderDecoder().encode(rec).toList())
+
+    val msg = "Hello ভাই"
+    val byteArray = msg.toByteArray(Charsets.UTF_8)
+    byteArray.forEach { print("$it ") }
+    println()
+    byteArray.forEach { print("${it.toInt() and 0xFF} ") }
+
 }
 
 class TextEncoderDecoder {
