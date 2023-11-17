@@ -10,8 +10,8 @@ import java.io.IOException
 
 fun main() {
     runBlocking {
-        //  readingDemo()
-       // writingDemo()
+        readingDemo()
+        writingDemo()
         readingWritingImageDemo()
     }
 
@@ -27,7 +27,7 @@ suspend fun readingDemo() {
 }
 
 suspend fun readingWritingImageDemo() {
-    val writer = BytesToFileWriter(
+    val writer = PacketToFileWriter(
         directory = "C:\\Users\\Khalekuzzaman\\Desktop\\socket",
         fileName = "demo",
         extension = "jpg"
@@ -47,7 +47,7 @@ suspend fun readingWritingImageDemo() {
 
 
 fun writingDemo() {
-    val writer = BytesToFileWriter(
+    val writer = PacketToFileWriter(
         directory = "C:\\Users\\Khalekuzzaman\\Desktop\\socket",
         fileName = "demo",
         extension = "txt"
@@ -94,7 +94,7 @@ suspend fun fileRead(
 }
 
 
-class BytesToFileWriter(
+class PacketToFileWriter(
     directory: String,
     fileName: String,
     extension: String

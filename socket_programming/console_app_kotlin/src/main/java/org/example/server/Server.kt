@@ -1,9 +1,7 @@
 package org.example.server
 
-import org.example.BytesToFileWriter
+import org.example.PacketToFileWriter
 import org.example.Peer
-import org.example.TextEncoderDecoder
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.ServerSocket
@@ -14,7 +12,6 @@ class Server(
     port: Int = Peer.SERVER_PORT
 ) : Peer {
     private val serverSocket = ServerSocket(port)
-    private val connectedClients = mutableListOf<ClientHandler>()
     private var socket = Socket()
 
     companion object {
@@ -23,36 +20,58 @@ class Server(
 
     fun start() {
         println("Server:running")
-        while (true) {
-            try {
-                val clientSocket = serverSocket.accept()
-                socket = clientSocket
-                connectedClients.add(ClientHandler())
-                //  observeReceiveData()
-                // readBytes()
-               // anyDataReadingWritingDemo()
-                readWriteBytes()
-            } catch (_: Exception) {
+        //while (true) {
+        //infinite loop can cause error to writing files
+        //same file can be override multiple time with dummy value because of infinite loop
+        try {
+            val clientSocket = serverSocket.accept()
+            socket = clientSocket
+            //   textWriterDemo()
+            // imageWriterDemo()
+            videoWriterDemo()
 
-            }
-
+        } catch (_: Exception) {
         }
+
+        // }
 
     }
 
-    private fun anyDataReadingWritingDemo() {
-        val path = "C:\\Users\\Khalekuzzaman\\Desktop\\socket\\clinet\\newimg.jpg"
-        val outputStream = FileOutputStream(path)
 
-        readBytes(onReading = { receivedPacket ->
-            println(receivedPacket.size)
-            outputStream.write(receivedPacket)
-        }, onFinished = {
-            outputStream.close()
-            println("Finished")
-        }
+    private fun videoWriterDemo() {
+        val writer = PacketToFileWriter(
+            directory = "C:\\Users\\Khalekuzzaman\\Desktop\\socket",
+            fileName = "receivedVideo",
+            extension = "mp4"
+        )
+        readAndWrite(writer)
+    }
+
+    private fun imageWriterDemo() {
+        val writer = PacketToFileWriter(
+            directory = "C:\\Users\\Khalekuzzaman\\Desktop\\socket",
+            fileName = "newImage",
+            extension = "jpg"
+        )
+        readAndWrite(writer)
+    }
+
+    private fun textWriterDemo() {
+        val writer = PacketToFileWriter(
+            directory = "C:\\Users\\Khalekuzzaman\\Desktop\\socket",
+            fileName = "Hello5",
+            extension = "txt"
+        )
+        readAndWrite(writer)
+    }
+
+    private fun readAndWrite(writer: PacketToFileWriter) {
+        readPackets(
+            onPacketReceived = writer::write,
+            onFinished = writer::writeFinished
         )
     }
+
 
     override suspend fun send(data: ByteArray): Boolean {
         TODO("Not yet implemented")
@@ -60,93 +79,38 @@ class Server(
 
 
     override fun observeReceiveData() {
-        val closeSignal = -1
-        var shouldRead = true
-        val dataBytes = mutableListOf<Byte>()
-        try {
-            val inputStream: InputStream = socket.getInputStream()
-            while (shouldRead) {
-                val bytes = inputStream.read()
-                if (bytes != closeSignal)
-                    dataBytes.add(bytes.toByte())
-                if (bytes == closeSignal) {
-                    inputStream.close()
-                    shouldRead = false
-                }
 
-            }
-            println("${TextEncoderDecoder().decode(dataBytes.toByteArray())} ")
-
-        } catch (e: IOException) {
-            println("$TAG observeReceiveData() causes exception")
-        }
     }
 
-    private fun readBytes(
-        onReading: (ByteArray) -> Unit = {},
-        onFinished: () -> Unit = {}
+
+    private fun readPackets(
+        onPacketReceived: (ByteArray) -> Unit,
+        onFinished: () -> Unit
     ) {
+        val received = mutableListOf<Byte>()
         val closeSignal = -1
-        var shouldRead = true
+        var readingNotFinished = true
         val maxByteToRead = 1024
         val buffer = ByteArray(maxByteToRead)
         try {
             val inputStream: InputStream = socket.getInputStream()
-            while (shouldRead) {
+            while (readingNotFinished) {
                 val numberOfByteWasRead = inputStream.read(buffer)
                 if (numberOfByteWasRead != closeSignal) {
-                    val actualReadBytes = buffer.copyOf(numberOfByteWasRead)
-                    onReading(actualReadBytes)
+                    val packet = buffer.copyOf(numberOfByteWasRead)
+                    onPacketReceived(packet)
+                    packet.forEach { received.add(it) }
+
                 }
                 if (numberOfByteWasRead == closeSignal) {
-                    inputStream.close()
-                    shouldRead = false
+                    readingNotFinished = false
                     onFinished()
                 }
             }
-
-            //  println("${TextEncoderDecoder().decode(dataBytes.toByteArray())} ")
-
+            inputStream.close()
         } catch (e: IOException) {
-            println("$TAG observeReceiveData() causes exception")
+            println("$TAG readPackets() Causes Exception")
         }
+
     }
-    private fun readWriteBytes(
-
-    ) {
-        val path = "C:\\Users\\Khalekuzzaman\\Desktop\\socket\\clinet\\newimg2.jpg"
-        val outputStream = FileOutputStream(path)
-        //
-        val closeSignal = -1
-        var shouldRead = true
-        val maxByteToRead = 1024
-        val buffer = ByteArray(maxByteToRead)
-        try {
-            val inputStream: InputStream = socket.getInputStream()
-            while (shouldRead) {
-                val numberOfByteWasRead = inputStream.read(buffer)
-                if (numberOfByteWasRead != closeSignal) {
-                    val actualReadBytes = buffer.copyOf(numberOfByteWasRead)
-                    outputStream.write(buffer,0,numberOfByteWasRead)
-
-                }
-                if (numberOfByteWasRead == closeSignal) {
-                    inputStream.close()
-                    shouldRead = false
-                    outputStream.close()
-
-                }
-            }
-
-            //  println("${TextEncoderDecoder().decode(dataBytes.toByteArray())} ")
-
-        } catch (e: IOException) {
-            println("$TAG observeReceiveData() causes exception")
-        }
-    }
-
-
 }
-
-
-class ClientHandler

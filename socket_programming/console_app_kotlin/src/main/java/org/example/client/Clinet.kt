@@ -36,11 +36,11 @@ class Client(
         }
         fileRead(filePath, onReading = { packet ->
               sendBytes(packet)
-            println("Packet: ${packet.size}")
+            println("Sent Packet: ${packet.toList()}")
         }, onReadingFinished = {
             closeConnection()
-            reconnect()
-            println("Finished")
+           // reconnect()
+            println("Sent Finished")
         })
 
     }
@@ -80,9 +80,10 @@ class Client(
                 //sending 1 byte at a time for desecration purpose though sending 1 byte poor performance
                 //this concept is useful when sending large data then we can send
                 //small chunks
-                data.forEach { oneByte ->
-                    outputStream.write(byteArrayOf(oneByte))
-                }
+//                data.forEach { oneByte ->
+//                    outputStream.write(byteArrayOf(oneByte))
+//                }
+                outputStream.write(data.toByteArray())
 
             }
 
@@ -142,24 +143,6 @@ class ClientCommunicationHandler(
             }
         }
 
-    }
-
-}
-
-class DataSender(
-    private val socket: Socket
-) {
-    suspend fun sendBytes(bytes: ByteArray) {
-        try {
-            withContext(Dispatchers.IO) {
-                val outputStream = socket.getOutputStream()
-                outputStream.write(bytes)
-
-            }
-
-        } catch (_: IOException) {
-
-        }
     }
 
 }
