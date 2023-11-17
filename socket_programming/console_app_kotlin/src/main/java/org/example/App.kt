@@ -15,10 +15,12 @@ fun main() {
                 serverPort = Peer.SERVER_PORT
             )
 
-            val text = "are you there?"
-            client.send(TextEncoderDecoder().encode(text))
-            client.send(TextEncoderDecoder().encode("Hello there !"))
-            client.send(TextEncoderDecoder().encode("hello ভাই"))
+//            val text = "are you there?"
+//            client.send(TextEncoderDecoder().encode(text))
+//            client.send(TextEncoderDecoder().encode("Hello there !"))
+//            client.send(TextEncoderDecoder().encode("hello ভাই"))
+            val imagePath = "C:\\Users\\Khalekuzzaman\\Desktop\\socket\\clinet\\img.jpg"
+            client.send(imagePath)
             while (true) {
 
             }

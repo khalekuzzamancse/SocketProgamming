@@ -1,7 +1,9 @@
 package org.example.server
 
+import org.example.BytesToFileWriter
 import org.example.Peer
 import org.example.TextEncoderDecoder
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.ServerSocket
@@ -26,13 +28,30 @@ class Server(
                 val clientSocket = serverSocket.accept()
                 socket = clientSocket
                 connectedClients.add(ClientHandler())
-                observeReceiveData()
+                //  observeReceiveData()
+                // readBytes()
+               // anyDataReadingWritingDemo()
+                readWriteBytes()
             } catch (_: Exception) {
 
             }
 
         }
 
+    }
+
+    private fun anyDataReadingWritingDemo() {
+        val path = "C:\\Users\\Khalekuzzaman\\Desktop\\socket\\clinet\\newimg.jpg"
+        val outputStream = FileOutputStream(path)
+
+        readBytes(onReading = { receivedPacket ->
+            println(receivedPacket.size)
+            outputStream.write(receivedPacket)
+        }, onFinished = {
+            outputStream.close()
+            println("Finished")
+        }
+        )
     }
 
     override suspend fun send(data: ByteArray): Boolean {
@@ -42,21 +61,84 @@ class Server(
 
     override fun observeReceiveData() {
         val closeSignal = -1
-        var shouldRead=true
-        val dataBytes= mutableListOf<Byte>()
+        var shouldRead = true
+        val dataBytes = mutableListOf<Byte>()
         try {
             val inputStream: InputStream = socket.getInputStream()
             while (shouldRead) {
                 val bytes = inputStream.read()
-                if(bytes!=closeSignal)
+                if (bytes != closeSignal)
                     dataBytes.add(bytes.toByte())
-                if (bytes == closeSignal){
+                if (bytes == closeSignal) {
                     inputStream.close()
-                    shouldRead=false
+                    shouldRead = false
                 }
 
             }
             println("${TextEncoderDecoder().decode(dataBytes.toByteArray())} ")
+
+        } catch (e: IOException) {
+            println("$TAG observeReceiveData() causes exception")
+        }
+    }
+
+    private fun readBytes(
+        onReading: (ByteArray) -> Unit = {},
+        onFinished: () -> Unit = {}
+    ) {
+        val closeSignal = -1
+        var shouldRead = true
+        val maxByteToRead = 1024
+        val buffer = ByteArray(maxByteToRead)
+        try {
+            val inputStream: InputStream = socket.getInputStream()
+            while (shouldRead) {
+                val numberOfByteWasRead = inputStream.read(buffer)
+                if (numberOfByteWasRead != closeSignal) {
+                    val actualReadBytes = buffer.copyOf(numberOfByteWasRead)
+                    onReading(actualReadBytes)
+                }
+                if (numberOfByteWasRead == closeSignal) {
+                    inputStream.close()
+                    shouldRead = false
+                    onFinished()
+                }
+            }
+
+            //  println("${TextEncoderDecoder().decode(dataBytes.toByteArray())} ")
+
+        } catch (e: IOException) {
+            println("$TAG observeReceiveData() causes exception")
+        }
+    }
+    private fun readWriteBytes(
+
+    ) {
+        val path = "C:\\Users\\Khalekuzzaman\\Desktop\\socket\\clinet\\newimg2.jpg"
+        val outputStream = FileOutputStream(path)
+        //
+        val closeSignal = -1
+        var shouldRead = true
+        val maxByteToRead = 1024
+        val buffer = ByteArray(maxByteToRead)
+        try {
+            val inputStream: InputStream = socket.getInputStream()
+            while (shouldRead) {
+                val numberOfByteWasRead = inputStream.read(buffer)
+                if (numberOfByteWasRead != closeSignal) {
+                    val actualReadBytes = buffer.copyOf(numberOfByteWasRead)
+                    outputStream.write(buffer,0,numberOfByteWasRead)
+
+                }
+                if (numberOfByteWasRead == closeSignal) {
+                    inputStream.close()
+                    shouldRead = false
+                    outputStream.close()
+
+                }
+            }
+
+            //  println("${TextEncoderDecoder().decode(dataBytes.toByteArray())} ")
 
         } catch (e: IOException) {
             println("$TAG observeReceiveData() causes exception")

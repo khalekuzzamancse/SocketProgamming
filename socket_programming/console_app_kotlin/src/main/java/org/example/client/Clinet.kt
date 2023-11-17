@@ -1,12 +1,12 @@
 package org.example.client
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.example.Peer
+import org.example.fileRead
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
+
 
 class Client(
     serverIP: String,
@@ -30,9 +30,42 @@ class Client(
         return true
     }
 
+    suspend fun send(filePath: String) {
+        if (isNotConnected()) {
+            connect()
+        }
+        fileRead(filePath, onReading = { packet ->
+              sendBytes(packet)
+            println("Packet: ${packet.size}")
+        }, onReadingFinished = {
+            closeConnection()
+            reconnect()
+            println("Finished")
+        })
+
+    }
+
+
     private fun isNotConnected(): Boolean {
         serverSocket ?: return true
         return false
+    }
+
+    private suspend fun sendBytes(bytes: ByteArray) {
+        val socket = serverSocket
+        if (socket == null) {
+            println("Client:: send:Failed due to: socket is null")
+            return
+        }
+        try {
+            withContext(Dispatchers.IO) {
+                val outputStream = socket.getOutputStream()
+                outputStream.write(bytes)
+            }
+
+        } catch (_: IOException) {
+
+        }
     }
 
     private suspend fun sendBytes(data: List<Byte>) {
@@ -112,3 +145,22 @@ class ClientCommunicationHandler(
     }
 
 }
+
+class DataSender(
+    private val socket: Socket
+) {
+    suspend fun sendBytes(bytes: ByteArray) {
+        try {
+            withContext(Dispatchers.IO) {
+                val outputStream = socket.getOutputStream()
+                outputStream.write(bytes)
+
+            }
+
+        } catch (_: IOException) {
+
+        }
+    }
+
+}
+
